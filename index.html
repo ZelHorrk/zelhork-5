@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galactic Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #bc13fe;
+            --space-black: #0a0a1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--space-black);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            touch-action: pan-y;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .header {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 4rem 0;
+            background: linear-gradient(45deg, #000428, #004e92);
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+        }
+
+        .title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            margin-top: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .galaxy-map {
+            position: relative;
+            min-height: 100vh;
+            padding: 2rem;
+            z-index: 2;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .celestial-body {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        @media (hover: hover) {
+            .celestial-body:hover {
+                transform: scale(1.15) translateZ(50px);
+            }
+        }
+
+        .info-sidebar {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100%;
+            background: rgba(10, 10, 26, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-left: 2px solid var(--neon-purple);
+            transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 3;
+        }
+
+        .info-sidebar.active {
+            right: 0;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: var(--neon-blue);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            text-align: center;
+            padding: 2rem;
+            background: #000428;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--space-black);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--neon-blue);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .star.blue-giant { background: radial-gradient(#87CEEB, #0000FF) }
+        .star.red-dwarf { background: radial-gradient(#FF4500, #8B0000) }
+        .star.white-dwarf { background: radial-gradient(#FFFFFF, #F0F8FF) }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 10px var(--neon-blue); }
+            to { text-shadow: 0 0 20px var(--neon-purple); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="nebula-background"></div>
+    
+    <header class="header">
+        <h1 class="title">Explore the Unknown</h1>
+        <p class="tagline">Click. Discover. Learn.</p>
+    </header>
+
+    <main class="galaxy-map" id="galaxyMap"></main>
+
+    <div class="info-sidebar" id="infoSidebar">
+        <span class="close-btn" onclick="closeSidebar()">×</span>
+        <h2 id="celestialTitle" class="title"></h2>
+        <img id="celestialImage" src="" alt="" class="celestial-image">
+        <p id="celestialDescription"></p>
+        <div class="info-tabs"></div>
+    </div>
+
+    <footer>
+        <p>Created by ZelHork, 2024</p>
+        <div class="social-links">
+            <a href="https://github.com/ZelHorrk" class="social-icon"><i class="fab fa-github"></i></a>
+        </div>
+    </footer>
+
+    <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <p>Initializing Stellar Drive Systems...</p>
+    </div>
+
+    <script>
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let hoverSound, clickSound;
+        let scale = 1;
+        let translateX = 0;
+        let translateY = 0;
+
+        async function loadSounds() {
+            try {
+                hoverSound = await loadSound('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+                clickSound = await loadSound('https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3');
+            } catch (error) {
+                console.error('Error loading sounds:', error);
+            }
+        }
+
+        async function loadSound(url) {
+            const response = await fetch(url);
+            const arrayBuffer = await response.arrayBuffer();
+            return await audioContext.decodeAudioData(arrayBuffer);
+        }
+
+        function playSound(buffer) {
+            if (!buffer) return;
+            const source = audioContext.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioContext.destination);
+            source.start(0);
+        }
+
+
+        const celestialData = [
+            {
+                type: 'planet', 
+                name: 'Luminara',
+                desc: 'A planet of endless light with crystalline structures',
+                color: '#4b0082',
+                size: 70,
+                image: 'https://example.com/luminara.jpg',
+                animation: 'pulse 1s infinite'
+            },
+            {
+                type: 'gas-giant',
+                name: 'Nebulon',
+                desc: 'A swirling vortex of colorful gases',
+                color: '#6a5acd',
+                size: 90,
+                image: 'https://example.com/nebulon.jpg'
+            },
+            {
+                type: 'asteroid',
+                name: 'Asteroid X-95',
+                desc: 'Metallic asteroid rich in rare minerals',
+                color: '#808080',
+                size: 40,
+                image: 'https://example.com/asteroid.jpg'
+            }
+        ];
+
+        function createGalaxy() {
+            const map = document.getElementById('galaxyMap');
+            map.innerHTML = '';
+            
+            celestialData.forEach(obj => {
+                const body = document.createElement('div');
+                body.className = `celestial-body ${obj.type}`;
+                Object.assign(body.style, {
+                    left: `${Math.random() * 90}%`,
+                    top: `${Math.random() * 90}%`,
+                    width: `${obj.size}px`,
+                    height: `${obj.size}px`,
+                    background: `radial-gradient(circle at 30% 30%, ${obj.color}, #000)`,
+                    animation: obj.animation || ''
+                });
+
+                body.addEventListener('mouseenter', () => playSound(hoverSound));
+                body.addEventListener('click', () => {
+                    playSound(clickSound);
+                    showInfo(obj);
+                });
+
+                map.appendChild(body);
+            });
+
+            drawConstellations();
+            hideLoadingScreen();
+        }
+
+        function showInfo(data) {
+            document.getElementById('celestialTitle').textContent = data.name;
+            document.getElementById('celestialDescription').textContent = data.desc;
+            document.getElementById('celestialImage').src = data.image;
+            document.getElementById('infoSidebar').classList.add('active');
+        }
+
+        function closeSidebar() {
+            document.getElementById('infoSidebar').classList.remove('active');
+        }
+
+        function drawConstellations() {
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 1;
+            `;
+
+            document.querySelectorAll('.celestial-body').forEach((body, index, bodies) => {
+                if (index % 2 === 0 && bodies[index + 1]) {
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    const rect1 = body.getBoundingClientRect();
+                    const rect2 = bodies[index + 1].getBoundingClientRect();
+                    
+                    line.setAttribute('x1', rect1.left + rect1.width/2);
+                    line.setAttribute('y1', rect1.top + rect1.height/2);
+                    line.setAttribute('x2', rect2.left + rect2.width/2);
+                    line.setAttribute('y2', rect2.top + rect2.height/2);
+                    line.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+                    line.setAttribute('stroke-width', '1');
+                    svg.appendChild(line);
+                }
+            });
+
+            document.body.appendChild(svg);
+        }
+
+        let initialTouchX = 0;
+        let initialTouchY = 0;
+        let initialTranslateX = 0;
+        let initialTranslateY = 0;
+
+        const galaxyMap = document.getElementById('galaxyMap');
+
+        galaxyMap.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            initialTouchX = e.touches[0].clientX;
+            initialTouchY = e.touches[0].clientY;
+            initialTranslateX = translateX;
+            initialTranslateY = translateY;
+        });
+
+        galaxyMap.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const currentTouchX = e.touches[0].clientX;
+            const currentTouchY = e.touches[0].clientY;
+            const deltaX = currentTouchX - initialTouchX;
+            const deltaY = currentTouchY - initialTouchY;
+            
+            translateX = initialTranslateX + deltaX;
+            translateY = initialTranslateY + deltaY;
+            
+            galaxyMap.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        });
+
+
+        galaxyMap.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            scale += e.deltaY * -0.001;
+            scale = Math.min(Math.max(1, scale), 5);
+            galaxyMap.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        });
+
+        async function initialize() {
+            await loadSounds();
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 400 },
+                    color: { value: '#ffffff' },
+                    opacity: { value: 0.5 },
+                    size: { value: 1 },
+                    move: { speed: 1.5 }
+                }
+            });
+            createGalaxy();
+        }
+
+        function hideLoadingScreen() {
+            document.getElementById('loadingScreen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 1000);
+        }
+
+        window.addEventListener('load', initialize);
+        window.addEventListener('resize', createGalaxy);
+    </script>
+</body>
+</html>
